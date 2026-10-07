@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hub Concierge</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='7' fill='%23ff3621'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand"><span class="dot" aria-hidden="true"></span>Hub Concierge</div>
+    <div class="meta" id="meta">Voice guide to the Databricks Resource Hub</div>
+  </header>
+
+  <main class="grid">
+    <section class="panel call" aria-labelledby="call-h">
+      <h2 id="call-h">Talk to the concierge</h2>
+      <p class="hint">Ask what to read, watch or try. Results show up here with links.</p>
+
+      <div class="orb" id="orb" aria-hidden="true"><span></span></div>
+      <p class="status" id="status" role="status">Ready</p>
+
+      <div class="actions">
+        <button id="connect" class="primary">Start call</button>
+        <button id="mute" class="ghost" disabled>Mute</button>
+      </div>
+
+      <div class="chips" id="chips" aria-label="Things to ask">
+        <span class="chip">What's new in Lakebase this month?</span>
+        <span class="chip">Find a solution accelerator for record linkage</span>
+        <span class="chip">Where do I start building agents?</span>
+        <span class="chip">Any videos on Genie?</span>
+        <span class="chip">Save the first one</span>
+      </div>
+
+      <h3>Transcript</h3>
+      <ol class="transcript" id="transcript" aria-live="polite"></ol>
+    </section>
+
+    <section class="panel" aria-labelledby="res-h">
+      <div class="panel-head">
+        <h2 id="res-h">On screen</h2>
+        <span class="badge" id="source" hidden></span>
+      </div>
+      <p class="sub" id="res-title">Results from the call appear here.</p>
+      <ul class="cards" id="results"></ul>
+    </section>
+
+    <section class="panel" aria-labelledby="short-h">
+      <div class="panel-head">
+        <h2 id="short-h">Your shortlist</h2>
+        <button class="ghost small" id="refresh">Refresh</button>
+      </div>
+      <p class="sub" id="short-sub">Say "save that one" during a call.</p>
+      <ul class="cards compact" id="shortlist"></ul>
+    </section>
+  </main>
+
+  <footer class="foot" id="foot"></footer>
+
+  <script src="vendor/livekit-client-2.22.3.umd.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

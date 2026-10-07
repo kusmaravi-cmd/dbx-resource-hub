@@ -1,0 +1,5 @@
+# Platform env (installed by Databricks Apps before start_app.py runs): ONLY the web tier's imports.
+# Keep it tiny and loosely pinned. The LiveKit worker stack lives in agent-requirements.txt and is
+# installed into an isolated /tmp/agent-venv at boot.
+databricks-sdk>=0.133.0
+psycopg[binary]

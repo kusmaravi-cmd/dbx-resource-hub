@@ -18,6 +18,10 @@ DIVA was built and verified on AWS, so the repo, skill and `app.yaml` apply almo
 | Egress | Standard serverless workspace reached LiveKit Cloud / ElevenLabs out of the box |
 | `ai_decide` | Beta, region-limited — check Previews in our region |
 
+> **Status:** Phases 1–3 are implemented in [`voice-agent/`](../voice-agent/README.md): the **Hub Concierge**,
+> a voice guide over this repo's own catalog (`search.json`), packaged as a Databricks App with a one-command
+> deploy (`scripts/deploy.py`). What's left needs workspace access: Phase 0 checks, loading Lakebase, deploying.
+
 ## Phase 0 — Readiness check (half a day)
 - [ ] CLI profile: `databricks auth login --host https://<ws>.cloud.databricks.com --profile awsdbx`.
 - [ ] Can we create a PAT for the app? (if not, use the app service principal — see Gotcha 4).

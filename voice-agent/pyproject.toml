@@ -1,0 +1,13 @@
+[project]
+name = "hub-concierge"
+version = "0.1.0"
+description = "Voice concierge for the Databricks Resource Hub, deployed as a Databricks App"
+requires-python = ">=3.11"
+# Runtime deps for the worker are pinned in agent-requirements.txt (compiled for the Apps Python 3.11).
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

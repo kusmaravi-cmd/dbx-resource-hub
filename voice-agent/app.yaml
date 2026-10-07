@@ -1,0 +1,57 @@
+# Databricks App spec for the Hub Concierge (voice guide to the Databricks Resource Hub).
+# One container: stdlib web/token tier + LiveKit agent worker, both launched by start_app.py.
+# Secret values never live here: each valueFrom names an app RESOURCE bound to a key in the
+# secret scope (scripts/deploy.sh creates the scope, the secrets and the resources).
+command: ["python", "start_app.py"]
+
+env:
+  - name: AGENT_NAME
+    value: "hub-concierge"
+
+  # --- secrets (valueFrom -> app secret resource -> scope key) ---
+  - name: LIVEKIT_URL
+    valueFrom: livekit-url
+  - name: LIVEKIT_API_KEY
+    valueFrom: livekit-api-key
+  - name: LIVEKIT_API_SECRET
+    valueFrom: livekit-api-secret
+  - name: DEEPGRAM_API_KEY
+    valueFrom: deepgram-api-key
+  # PAT mode (optional). Leave this out to run as the app's service principal instead; then grant the
+  # SP CAN_QUERY on the gateway models and a Lakebase role (see README "Service principal mode").
+  - name: DATABRICKS_TOKEN
+    valueFrom: databricks-token
+
+  # --- models on Unity AI Gateway (check names in your workspace: Serving / AI Gateway) ---
+  - name: HUB_LLM_MODEL
+    value: "system.ai.gpt-5-nano"
+  - name: HUB_LLM_REASONING_EFFORT
+    value: "low"
+  - name: HUB_EMBED_MODEL
+    value: "system.ai.gte-large-en"
+  - name: HUB_EMBED_DIM
+    value: "1024"
+
+  # --- voice (Deepgram) ---
+  - name: HUB_STT_MODEL
+    value: "nova-3"
+  - name: HUB_TTS_VOICE
+    value: "aura-2-thalia-en"
+
+  # --- Lakebase (remove LAKEBASE_ENDPOINT to run on the bundled catalog only) ---
+  - name: LAKEBASE_ENDPOINT
+    value: "projects/REPLACE_PROJECT/branches/production/endpoints/primary"
+  - name: LAKEBASE_DATABASE
+    value: "databricks_postgres"
+  - name: HUB_SCHEMA
+    value: "hub"
+
+  # --- tracing to Unity Catalog + MLflow (all three set = on; any blank = off) ---
+  - name: OTEL_SERVICE_NAME
+    value: "hub-concierge"
+  - name: HUB_TRACE_CATALOG
+    value: ""
+  - name: HUB_TRACE_SCHEMA
+    value: ""
+  - name: HUB_TRACE_TABLE_PREFIX
+    value: "hub_concierge"
