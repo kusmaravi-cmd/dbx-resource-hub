@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apps Release Gate Proposal</title>
+<style>
+:root{
+  --teal:#113738; --teal-2:#1B4A4B; --deep:#0B2A2B; --slate:#466F78; --sage:#819E72;
+  --mint:#F2F8F7; --mint-2:#E7F1EF; --pale:#CEEBE8; --border:#DCE7E5;
+  --ink:#343333; --ink-soft:#56605F; --muted:#7A8886; --lemon:#EEFF00;
+  --paper:#FFFFFF; --ground:#FAFCFB;
+  --block:#8A2B2B; --block-soft:#F8E1E1; --warn:#7A5B00; --warn-soft:#FFF6D6; --pass:#3F6130; --pass-soft:#E4F0DD;
+  --font:Arial,Helvetica,sans-serif; --mono:Consolas,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.6 var(--font);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+h1,h2,h3,h4{color:var(--teal);margin:0;line-height:1.2;text-wrap:balance}
+p{margin:0}
+ul,ol{margin:0;padding-left:1.2em;display:grid;gap:6px}
+code{font-family:var(--mono);font-size:.86em;background:var(--mint-2);border:1px solid var(--border);border-radius:4px;padding:.05em .35em;color:var(--teal)}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:clamp(16px,4vw,40px)}
+
+/* hero */
+.hero{background:linear-gradient(135deg,var(--teal) 0%,var(--deep) 65%,#08211f 100%);color:#fff;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-160px;top:-160px;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(238,255,0,.09),transparent 68%);pointer-events:none}
+.hero .wrap{position:relative;z-index:1;padding-block:28px 56px}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{height:30px;width:auto;display:block}
+.hero-tag{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--pale)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);gap:44px;margin-top:52px;align-items:end}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--sage)}
+.hero .eyebrow{color:var(--lemon)}
+.hero h1{color:#fff;font-size:clamp(32px,5vw,54px);letter-spacing:-.02em;margin-top:14px;line-height:1.08}
+.hero h1 em{font-style:normal;color:var(--lemon)}
+.hero .lede{margin-top:18px;font-size:18px;color:var(--pale);max-width:62ch}
+.hero-card{border:1px solid rgba(206,235,232,.25);border-radius:12px;padding:22px;background:rgba(255,255,255,.05)}
+.hero-card h4{color:#fff;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.hero-card ul{list-style:none;padding:0;margin-top:14px;gap:10px}
+.hero-card li{display:grid;grid-template-columns:auto 1fr;gap:10px;color:#E9F3F1;font-size:14px;line-height:1.45}
+.tick{width:18px;height:18px;border-radius:50%;background:var(--lemon);color:var(--teal);font-size:11px;font-weight:800;display:grid;place-items:center;margin-top:1px}
+.meta{display:flex;flex-wrap:wrap;gap:10px 36px;margin-top:30px;font-size:14px;color:#E9F3F1}
+.meta b{display:block;color:var(--lemon);font-size:11px;letter-spacing:.1em;text-transform:uppercase}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:var(--teal);box-shadow:0 2px 14px rgba(0,0,0,.18)}
+.nav .wrap{display:flex;gap:22px;overflow-x:auto;padding-block:11px}
+.nav a{color:var(--pale);text-decoration:none;font-size:13.5px;white-space:nowrap}
+.nav a b{color:var(--lemon);margin-right:6px}
+.nav a:hover{color:var(--lemon)}
+
+/* sections */
+section{padding-block:60px;scroll-margin-top:44px}
+section.alt{background:var(--mint)}
+.sec-head{display:grid;gap:10px;max-width:72ch}
+.sec-head .num{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--slate)}
+.sec-head h2{font-size:clamp(25px,3vw,33px);letter-spacing:-.3px}
+.sec-head p{font-size:16.5px;color:var(--ink-soft)}
+h3{font-size:19px;margin-top:34px;margin-bottom:12px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:24px}
+.card{background:var(--paper);border:1px solid var(--border);border-top:4px solid var(--teal);border-radius:12px;padding:18px;min-width:0;display:grid;gap:8px;align-content:start}
+.card:nth-child(2){border-top-color:var(--slate)} .card:nth-child(3){border-top-color:var(--sage)} .card:nth-child(4){border-top-color:var(--teal-2)}
+.card .k{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--sage)}
+.card h4{font-size:16px}
+.card p,.card li{font-size:14px;color:var(--ink-soft)}
+.card ul{gap:4px}
+
+.problem{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-top:24px}
+.problem>div{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:20px 22px;min-width:0}
+.problem h4{font-size:16px;margin-bottom:8px}
+.problem p{font-size:14.5px;color:var(--ink-soft)}
+.problem li{font-size:14.5px;color:var(--ink-soft)}
+.problem li strong{color:var(--teal)}
+
+.callout{margin-top:22px;background:var(--teal);color:var(--pale);border-radius:12px;padding:18px 22px;font-size:15.5px}
+.callout b{display:block;color:var(--lemon);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
+
+/* diagram */
+.diagram{margin-top:26px;overflow-x:auto;background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:12px}
+.diagram svg{display:block;min-width:780px;width:100%;height:auto}
+.diagram text{font-family:var(--font)}
+
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.principles>div{background:var(--paper);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:0}
+.principles b{display:block;color:var(--teal);font-size:14.5px}
+.principles span{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:4px}
+
+/* table */
+.tbl{margin-top:24px;overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:760px}
+th{background:var(--mint);color:var(--teal);text-align:left;font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border)}
+td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td.id{font-family:var(--mono);font-size:12.5px;white-space:nowrap;color:var(--slate);font-weight:700}
+tr.group td{background:var(--teal);color:var(--lemon);font-weight:700;font-size:12px;letter-spacing:.1em;text-transform:uppercase;padding-block:8px}
+.sev{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:999px;letter-spacing:.03em;white-space:nowrap}
+.sev.b{background:var(--block-soft);color:var(--block)}
+.sev.w{background:var(--warn-soft);color:var(--warn)}
+.legend{margin-top:12px;font-size:12.5px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+
+/* code */
+pre{margin:0;background:var(--deep);color:#E3EFED;font-family:var(--mono);font-size:12.5px;line-height:1.6;padding:18px 20px;border-radius:12px;overflow-x:auto}
+pre .d{color:#7A9895} pre .r{color:#FF9A9A} pre .y{color:var(--lemon)} pre .g{color:#A9CF95} pre .c{color:var(--pale);font-weight:700}
+.codegrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.codegrid>div{min-width:0;display:grid;gap:10px;align-content:start}
+.codegrid p{font-size:14px;color:var(--ink-soft)}
+
+/* plan */
+.phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:24px}
+.ph{background:var(--paper);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.ph header{background:var(--teal);color:#fff;padding:12px 14px}
+.ph:nth-child(2) header{background:var(--slate)} .ph:nth-child(3) header{background:var(--sage)} .ph:nth-child(4) header{background:var(--teal-2)}
+.ph header small{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;opacity:.9}
+.ph header b{font-size:15.5px}
+.ph ul{padding:14px 14px 16px 30px;font-size:13.5px;color:var(--ink-soft);gap:5px}
+
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:18px 14px;text-align:center;min-width:0}
+.kpi .n{font-size:30px;font-weight:700;color:var(--teal);line-height:1}
+.kpi .l{font-size:12.5px;color:var(--ink-soft);margin-top:10px;line-height:1.4}
+.kpi.hl{background:var(--teal);border-color:var(--teal)} .kpi.hl .n{color:var(--lemon)} .kpi.hl .l{color:var(--pale)}
+
+.cta{margin-top:40px;background:var(--teal);color:#fff;border-radius:14px;padding:30px;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:center}
+.cta h3{color:#fff;font-size:24px;margin:0}
+.cta p{color:var(--pale);margin-top:10px}
+.cta ol{color:#E9F3F1;font-size:14.5px;gap:8px}
+.cta ol b{color:var(--lemon)}
+
+.foot{background:var(--deep)}
+.foot .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding-block:22px;font-size:12px;color:var(--pale)}
+.foot .logo{height:20px}
+
+@media (max-width:960px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.hero-grid,.problem,.codegrid,.cta{grid-template-columns:1fr}.hero-grid{margin-top:36px;gap:28px}}
+@media (max-width:520px){.phases,.kpis{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
+@media print{.nav{display:none}section{break-inside:avoid-page}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top"><svg viewBox="0 0 1585.24 309.27" class="logo" role="img" aria-label="Everforth Apex Systems"><path fill="#EEFF00" d="M267.02 213.95 374 213.95 341.86 262.13C333.39 274.84 319.09 282.46 303.84 282.46L215.2 282.46 257.5 219.03C259.64 215.84 263.18 213.95 267.02 213.95ZM326.01 116.29 283.71 179.72 433.29 179.72C448.54 179.72 462.84 172.1 471.31 159.39L503.45 111.21 335.54 111.21C331.7 111.21 328.17 113.1 326.02 116.29ZM297.01 8.42C281.76 8.42 267.46 16.04 258.99 28.75L135.52 213.95 70.15 213.95C54.9 213.95 40.6 221.57 32.13 234.28L0 282.46 167.91 282.46C171.75 282.46 175.28 280.57 177.43 277.38L307.67 82.01C309.81 78.82 313.35 76.93 317.19 76.93L527.8 76.93C543.05 76.93 557.35 69.31 565.82 56.6L597.96 8.42 297.01 8.42ZM767.02 122.37 695.07 122.37 695.07 86.69 759.2 86.69 759.2 64.87 695.07 64.87 695.07 31.49 765.97 31.49 765.97 8.42 666.47 8.42 666.47 145.44 767.02 145.44 767.02 122.37ZM874.49 42.45 845.64 42.45 829.55 90.23C825.66 101.34 823.37 111.66 821.73 122.17L818.44 122.17C816.8 111.86 814.55 101.94 810.82 90.83L794.73 42.4 765.68 42.4 803.2 145.44 836.78 145.44 874.5 42.4 874.5 42.45ZM1040.76 70.11C1045.09 70.11 1047.93 70.56 1051.87 71.36L1051.87 42.11C1051.07 42.11 1048.78 41.91 1046.74 41.91 1030.65 41.91 1019.93 46.24 1013.76 63.14L1010.67 62.29C1012.76 55.86 1013.56 51.98 1013.56 46.2L1013.56 42.46 985.96 42.46 985.96 145.45 1014.16 145.45 1014.16 94.13C1014.16 76.79 1026.77 70.01 1040.77 70.01L1040.77 70.11ZM1288.54 70.11C1292.87 70.11 1295.76 70.56 1299.65 71.36L1299.65 42.11C1298.85 42.11 1296.56 41.91 1294.52 41.91 1278.43 41.91 1267.71 46.24 1261.54 63.14L1258.45 62.29C1260.49 55.86 1261.34 51.98 1261.34 46.2L1261.34 42.46 1233.74 42.46 1233.74 145.45 1261.99 145.45 1261.99 94.13C1261.99 76.79 1274.6 70.01 1288.6 70.01L1288.55 70.11ZM1402.34 2.29 1374.09 2.29 1374.09 145.49 1402.34 145.49 1402.34 82.01C1402.34 69.25 1412.06 62.03 1423.57 62.03L1424.17 62.03C1435.28 62.03 1443.75 67.61 1443.75 80.17L1443.75 145.49 1471.75 145.49 1471.75 75.24C1471.75 49.08 1454.91 40.01 1437.57 40.01 1420.23 40.01 1407.28 48.23 1402.94 58.94L1399.65 57.89C1401.54 52.76 1402.34 49.87 1402.34 44.29L1402.34 2.24 1402.34 2.29ZM1091.08 32.54C1091.08 23.67 1096.61 20.58 1104.88 20.58 1108.97 20.58 1113.1 21.18 1117.64 22.42L1117.64 2.04C1114.3 1.44 1106.93 0 1097.21 0 1075.34 0 1062.78 10.26 1062.78 29.65L1062.78 145.45 1091.03 145.45 1091.03 62.63 1116.59 62.63 1116.59 42.45 1091.03 42.45 1091.03 32.53 1091.08 32.53ZM922.87 59.09C909.52 59.09 902.09 70 901.05 82.36L946.19 82.36C945.19 69.6 937.37 59.09 924.17 59.09L922.87 59.09ZM974.79 110.81C969.86 133.43 951.32 148.08 924.32 147.88 891.98 147.68 872.6 127.7 872.6 94.12 872.6 60.54 893.38 39.91 923.67 39.91 953.96 39.91 974.14 60.09 974.14 93.67L974.14 99.45 900.6 99.45 900.6 100.5C901.05 116 910.52 127.31 924.52 127.31L925.37 127.31C937.53 127.31 944.55 119.69 946.99 110.82L974.79 110.82ZM1360.29 144.99 1360.29 121.92C1359.04 122.12 1355.76 122.97 1351.02 122.97 1342.6 122.97 1339.51 118.44 1339.51 109.17L1339.51 62.58 1359.29 62.58 1359.29 42.4 1339.51 42.4 1339.51 12.56 1311.26 12.56 1311.26 108.97C1311.26 132.64 1320.53 147.09 1344.19 147.09 1351.81 147.09 1359.89 145.05 1360.28 145.05L1360.28 145ZM1193.83 93.72C1193.83 75.58 1186.85 60.74 1170.56 60.74L1169.12 60.74C1153.08 60.74 1145.85 75.99 1145.85 93.72 1145.85 111.45 1152.83 127.1 1169.12 127.1L1170.56 127.1C1186.85 127.1 1193.83 111.85 1193.83 93.72ZM1222.87 93.52C1222.87 127.3 1200.4 147.93 1169.91 147.93 1139.42 147.93 1116.95 127.3 1116.95 93.52 1116.95 59.74 1139.02 39.96 1169.91 39.96 1200.8 39.96 1222.87 59.74 1222.87 93.52ZM720.13 239.76 687.1 239.76 703.64 193.92 720.18 239.76 720.13 239.76ZM694.62 179.77 655.91 282.51 671.7 282.51 682.41 252.71 724.96 252.71 735.67 282.51 751.91 282.51 713.05 179.77 694.56 179.77 694.61 179.77ZM795.76 271.9C782.66 271.9 774.78 262.23 774.78 244.5 774.78 226.77 782.8 217.1 795.91 217.1 809.02 217.1 816.74 226.62 816.74 244.06 816.74 261.5 808.87 271.91 795.76 271.91ZM760.19 309.27 774.79 309.27 774.79 272.5C780.02 279.92 788.64 284.26 798.91 284.26 818.24 284.26 831.94 268.76 831.94 244.05 831.94 219.34 818.54 204.74 799.05 204.74 788.64 204.74 780.17 208.93 774.78 216.65L774.78 206.54 760.18 206.54 760.18 309.28ZM896.02 236.77 855.66 236.77C857.75 224.11 865.77 216.99 877.09 216.99 888.41 216.99 895.53 224.86 895.97 236.77L896.02 236.77ZM840.01 244.35C840.01 269.21 854.16 284.26 876.33 284.26 893.87 284.26 907.42 274.44 910.11 258.65L894.91 258.65C893.12 266.52 886.54 271.9 877.02 271.9 864.21 271.9 856.19 263.28 855.15 247.63L910.95 247.63 910.95 243.3C910.95 219.48 898.44 204.73 877.02 204.73 855.6 204.73 839.95 219.93 839.95 244.34L840 244.34ZM966.17 282.51 983.76 282.51 956.06 243.35 981.82 206.58 964.98 206.58 947.59 232.94 930.3 206.58 912.91 206.58 938.67 242.9 910.97 282.51 927.96 282.51 947.29 253.31 966.17 282.51ZM1013.56 248.63C1014.16 272 1029.35 284.21 1054.82 284.21 1077.74 284.21 1092.79 272.3 1092.79 252.67 1092.79 233.04 1078.79 227.56 1057.36 222.33 1041.42 218.44 1032.05 214.91 1032.05 205.94 1032.05 196.97 1040.22 190.74 1053.33 190.74 1066.44 190.74 1075.2 198.31 1075.95 210.52L1091.3 210.52C1090.7 189.99 1076.4 177.93 1053.78 177.93 1031.16 177.93 1016.71 190.14 1016.71 207.13 1016.71 226.06 1031.61 231.54 1053.33 236.78 1067.48 240.17 1077.3 243.46 1077.3 254.47 1077.3 264.63 1068.98 271.31 1054.98 271.31 1039.04 271.31 1029.67 263.29 1029.07 248.69L1013.57 248.69 1013.57 248.64ZM1101.5 296.86 1101.5 309.22 1112.36 309.22C1126.36 309.22 1133.09 303.59 1138.27 289.59L1169.66 206.53 1154.31 206.53 1133.18 266.22 1112.05 206.53 1096.55 206.53 1125.6 284.11 1124.55 286.8C1121.71 294.37 1118.42 296.91 1110.25 296.91L1101.48 296.91 1101.48 296.86ZM1171.25 257.75C1171.7 274.89 1183.46 284.26 1203.84 284.26 1222.72 284.26 1234.33 275.19 1234.33 259.85 1234.33 244.51 1220.78 240.67 1205.88 237.23 1194.27 234.54 1187.54 232.75 1187.54 226.07 1187.54 219.99 1193.67 216.25 1202.44 216.25 1212.46 216.25 1217.64 221.03 1218.23 229.8L1232.68 229.8C1231.98 214.15 1221.57 204.79 1202.93 204.79 1184.29 204.79 1172.84 213.71 1172.84 227.56 1172.84 242.76 1185.2 246.44 1201.89 250.33 1213.5 253.02 1219.58 255.26 1219.58 261.79 1219.58 268.32 1213.6 272.5 1204.08 272.5 1192.77 272.5 1186.04 266.67 1185.59 257.75L1171.14 257.75 1171.24 257.75ZM1252.27 264.43C1252.27 275.64 1258.1 282.47 1271.05 282.47L1282.81 282.47 1282.81 270.26 1276.58 270.26C1269.9 270.26 1266.91 267.72 1266.91 261.49L1266.91 218.34 1282.26 218.34 1282.26 206.58 1266.91 206.58 1266.91 185.3 1252.31 185.3 1252.31 206.58 1237.71 206.58 1237.71 218.34 1252.31 218.34 1252.31 264.48 1252.26 264.43ZM1344.05 236.77 1303.69 236.77C1305.78 224.11 1313.8 216.99 1325.12 216.99 1336.44 216.99 1343.56 224.86 1344 236.77L1344.05 236.77ZM1324.37 284.26C1341.91 284.26 1355.46 274.44 1358.15 258.65L1342.95 258.65C1341.16 266.52 1334.58 271.9 1325.06 271.9 1312.25 271.9 1304.23 263.28 1303.19 247.63L1359.04 247.63 1359.04 243.3C1359.04 219.48 1346.53 204.73 1325.11 204.73 1303.69 204.73 1288.04 219.93 1288.04 244.34 1288.04 268.75 1302.19 284.25 1324.36 284.25ZM1371.6 206.43 1371.6 282.36 1386.2 282.36 1386.2 237.27C1386.2 225.36 1393.03 217.49 1403.89 217.49 1413.41 217.49 1418.49 223.77 1418.49 234.63L1418.49 282.41 1433.09 282.41 1433.09 237.32C1433.09 225.41 1439.97 217.54 1450.68 217.54 1460.2 217.54 1465.28 223.82 1465.28 234.68L1465.28 282.46 1479.88 282.46 1479.88 231.99C1479.88 215.15 1470.36 204.74 1454.72 204.74 1444.9 204.74 1435.39 208.93 1430.01 217.4 1426.17 209.38 1418.7 204.74 1408.58 204.74 1399.81 204.74 1390.74 208.63 1385.96 217.1L1385.96 206.54 1371.66 206.54 1371.61 206.44ZM1491.34 257.75C1491.79 274.89 1503.55 284.26 1523.93 284.26 1542.81 284.26 1554.42 275.19 1554.42 259.85 1554.42 244.51 1540.87 240.67 1525.97 237.23 1514.36 234.54 1507.63 232.75 1507.63 226.07 1507.63 219.99 1513.76 216.25 1522.53 216.25 1532.55 216.25 1537.73 221.03 1538.32 229.8L1552.77 229.8C1552.07 214.15 1541.66 204.79 1523.02 204.79 1504.38 204.79 1492.93 213.71 1492.93 227.56 1492.93 242.76 1505.29 246.44 1521.98 250.33 1533.59 253.02 1539.67 255.26 1539.67 261.79 1539.67 268.32 1533.69 272.5 1524.17 272.5 1512.86 272.5 1506.13 266.67 1505.68 257.75L1491.23 257.75 1491.33 257.75Z"></path></svg><span class="hero-tag">Proposal · Proof of concept</span></div>
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">Databricks Apps governance</div>
+        <h1>Apps Release Gate: <em>policy-checked deployment</em> for Databricks Apps</h1>
+        <p class="lede">A Databricks Asset Bundle (DAB) based framework that checks every Databricks App against agreed enterprise standards before it deploys, blocks the release when a blocking standard fails, and tells the developer exactly what failed and how to fix it.</p>
+        <div class="meta">
+          <div><b>Prepared by</b>Everforth Apex Systems · Databricks Practice</div>
+          <div><b>Engagement</b>Proof of concept, 4 weeks</div>
+          <div><b>Date</b>October 2026</div>
+        </div>
+      </div>
+      <div class="hero-card">
+        <h4>What the POC proves</h4>
+        <ul>
+          <li><span class="tick">✓</span>~30 enterprise standards enforced as policy-as-code</li>
+          <li><span class="tick">✓</span><span>Blocking failures stop <code style="background:transparent;border-color:rgba(206,235,232,.3);color:var(--lemon)">bundle deploy</code> in the pipeline</span></li>
+          <li><span class="tick">✓</span>Every finding names file, line, rule and fix</li>
+          <li><span class="tick">✓</span>3 pilot apps: CRUD, Genie analytics, Agent Supervisor chat</li>
+          <li><span class="tick">✓</span>Audit trail and compliance view in Unity Catalog</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="nav" aria-label="Sections">
+  <div class="wrap">
+    <a href="#summary"><b>01</b>Executive summary</a>
+    <a href="#architecture"><b>02</b>Architecture</a>
+    <a href="#standards"><b>03</b>Standards catalog</a>
+    <a href="#experience"><b>04</b>Developer experience</a>
+    <a href="#poc"><b>05</b>POC plan</a>
+  </div>
+</nav>
+
+<main>
+
+<!-- 01 -->
+<section id="summary">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">01 · Executive summary</span>
+      <h2>Apps are shipping fast. The standards are not keeping up.</h2>
+    </div>
+    <div class="problem">
+      <div>
+        <h4>The problem</h4>
+        <p>Teams are building Databricks Apps quickly: internal tools, Genie-backed analytics front ends and agent chat interfaces on Mosaic AI. Today each app reaches a workspace through its own bundle with no common bar for security, identity, data access or AI controls. Review is manual, inconsistent and happens after the fact, if at all.</p>
+      </div>
+      <div>
+        <h4>What we propose</h4>
+        <ul>
+          <li><strong>A standards catalog</strong> written as policy-as-code: around 30 controls across security, identity, Unity Catalog, Genie, Agent Supervisor and operations, each with a severity per environment.</li>
+          <li><strong>A release gate</strong> that runs inside the CI/CD pipeline between <code>databricks bundle validate</code> and <code>databricks bundle deploy</code>. A blocking failure stops the pipeline with a non-zero exit code.</li>
+          <li><strong>Actionable reports</strong>: every finding names the file and line, the rule, why it matters and a concrete fix, posted to the pull request and stored for audit.</li>
+          <li><strong>A compliance view</strong> in Unity Catalog so platform owners can see pass rates, waivers and repeat offenders across all apps.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="callout"><b>POC outcome</b>Three representative apps (a CRUD tool, a Genie analytics app and an Agent Supervisor chat app) run through the gate in dev and prod targets, with at least one deliberate violation per category blocked and fixed end to end.</div>
+  </div>
+</section>
+
+<!-- 02 -->
+<section id="architecture" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">02 · Solution architecture</span>
+      <h2>A gate in the pipeline, not a review after the fact</h2>
+      <p>The gate is a small Python package and CLI (<code>appgate</code>) that ships as a reusable pipeline step for GitHub Actions or Azure DevOps. It reads the fully resolved bundle, inspects the app source, and optionally queries the target workspace to confirm that what the app references really exists and is configured safely.</p>
+    </div>
+
+    <div class="diagram" role="img" aria-label="Flow: developer pull request, bundle validate, three check layers, decision. Pass leads to bundle deploy and the app going live. Fail leads to a fix report back to the developer.">
+    <svg viewBox="0 0 860 300" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#466F78"/></marker></defs>
+      <g stroke-width="1.5">
+        <rect x="10" y="110" width="120" height="64" rx="8" fill="#F2F8F7" stroke="#DCE7E5"/>
+        <rect x="160" y="110" width="130" height="64" rx="8" fill="#F2F8F7" stroke="#DCE7E5"/>
+        <rect x="320" y="30" width="200" height="224" rx="10" fill="#113738" stroke="#113738"/>
+        <rect x="336" y="68" width="168" height="48" rx="6" fill="#fff" stroke="#fff"/>
+        <rect x="336" y="126" width="168" height="48" rx="6" fill="#fff" stroke="#fff"/>
+        <rect x="336" y="184" width="168" height="48" rx="6" fill="#fff" stroke="#fff"/>
+        <rect x="690" y="52" width="160" height="60" rx="8" fill="#E4F0DD" stroke="#819E72"/>
+        <rect x="690" y="180" width="160" height="60" rx="8" fill="#F8E1E1" stroke="#8A2B2B"/>
+      </g>
+      <polygon points="605,102 655,142 605,182 555,142" fill="#EEFF00" stroke="#113738" stroke-width="1.5"/>
+      <g fill="#113738" font-size="13" text-anchor="middle">
+        <text x="70" y="138" font-weight="700">Developer</text><text x="70" y="156" fill="#56605F" font-size="12">pull request</text>
+        <text x="225" y="138" font-weight="700">bundle validate</text><text x="225" y="156" fill="#56605F" font-size="12">resolved JSON</text>
+        <text x="420" y="54" font-weight="700" fill="#EEFF00" letter-spacing="1">APPGATE CHECKS</text>
+        <text x="420" y="89" font-weight="700">1 · Static source scan</text><text x="420" y="106" fill="#56605F" font-size="11.5">secrets, deps, code patterns</text>
+        <text x="420" y="147" font-weight="700">2 · Bundle + app.yaml rules</text><text x="420" y="164" fill="#56605F" font-size="11.5">resources, auth, perms, env</text>
+        <text x="420" y="205" font-weight="700">3 · Workspace verification</text><text x="420" y="222" fill="#56605F" font-size="11.5">Genie, endpoints, UC grants</text>
+        <text x="605" y="146" font-weight="700" font-size="12.5">Blocking?</text>
+        <text x="770" y="78" font-weight="700" fill="#3F6130">bundle deploy</text><text x="770" y="96" fill="#56605F" font-size="12">app goes live</text>
+        <text x="770" y="206" font-weight="700" fill="#8A2B2B">Deployment blocked</text><text x="770" y="224" fill="#56605F" font-size="12">fix report on the PR</text>
+      </g>
+      <g stroke="#466F78" stroke-width="1.5" fill="none" marker-end="url(#ah)">
+        <path d="M130,142 H156"/><path d="M290,142 H316"/><path d="M520,142 H551"/>
+        <path d="M605,102 V82 H686"/><path d="M605,182 V210 H686"/>
+        <path d="M770,240 V280 H70 V178" stroke-dasharray="4 4"/>
+      </g>
+      <g font-size="11.5" fill="#56605F"><text x="620" y="76">no</text><text x="620" y="226">yes</text><text x="400" y="274">developer applies fixes, pushes again</text></g>
+    </svg>
+    </div>
+
+    <div class="cards">
+      <div class="card"><span class="k">Layer 1</span><h4>Static source scan</h4><p>Scans the app folder for hard-coded tokens and keys, unpinned or vulnerable dependencies (<code>pip-audit</code>, <code>npm audit</code>), unsafe patterns such as string-built SQL, and debug flags left on.</p></div>
+      <div class="card"><span class="k">Layer 2</span><h4>Bundle rules</h4><p>Evaluates the resolved <code>resources.apps</code> block and <code>app.yaml</code>: declared resources, auth mode, permissions, environment variables, tags and per-target settings. Rules are YAML plus small Python checks.</p></div>
+      <div class="card"><span class="k">Layer 3</span><h4>Workspace verification</h4><p>Read-only API calls using the pipeline's service principal: the Genie space exists and is shared correctly, serving endpoints have AI Gateway guardrails and inference logging, UC grants match the app's declared scope.</p></div>
+    </div>
+
+    <h3>Design principles</h3>
+    <div class="principles">
+      <div><b>Native to DAB</b><span>No change to how teams write bundles; the gate reads <code>databricks bundle validate -o json</code> so variables and target overrides are already resolved.</span></div>
+      <div><b>Severity by target</b><span>The same rule can warn in <code>dev</code> and block in <code>prod</code>, so developers are not slowed down while experimenting.</span></div>
+      <div><b>Waivers with an expiry</b><span>A blocked rule can be waived only through a reviewed entry in <code>appgate-waivers.yml</code> with an owner, reason and end date.</span></div>
+      <div><b>Auditable</b><span>Every run writes its findings to a Delta table in Unity Catalog.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 -->
+<section id="standards">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">03 · Standards catalog</span>
+      <h2>The standards each app must meet</h2>
+      <p>This is the proposed starter catalog. During week 1 we confirm it with the customer's security, platform and AI governance owners; rule IDs stay stable so reports and waivers remain traceable.</p>
+    </div>
+    <div class="tbl">
+    <table>
+      <thead><tr><th>ID</th><th>Standard</th><th>Prod</th><th>How the developer fixes it</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="4">Security</td></tr>
+        <tr><td class="id">SEC-001</td><td>No secrets, tokens or keys in source or <code>app.yaml</code></td><td><span class="sev b">BLOCK</span></td><td>Store in a secret scope, add it as an app <code>secret</code> resource, read it with <code>valueFrom</code></td></tr>
+        <tr><td class="id">SEC-002</td><td>All dependencies pinned to exact versions</td><td><span class="sev b">BLOCK</span></td><td>Pin in <code>requirements.txt</code> / lock file</td></tr>
+        <tr><td class="id">SEC-003</td><td>No known high or critical CVEs in dependencies</td><td><span class="sev b">BLOCK</span></td><td>Upgrade to the patched version shown in the report</td></tr>
+        <tr><td class="id">SEC-004</td><td>No SQL built by string concatenation</td><td><span class="sev b">BLOCK</span></td><td>Use parameterised queries in the SQL connector</td></tr>
+        <tr><td class="id">SEC-005</td><td>Debug mode and verbose tracebacks off</td><td><span class="sev w">WARN</span></td><td>Drive debug flags from an env var set only in <code>dev</code></td></tr>
+
+        <tr class="group"><td colspan="4">Identity and access</td></tr>
+        <tr><td class="id">IAM-001</td><td><code>CAN_USE</code> granted to named groups, never all workspace users</td><td><span class="sev b">BLOCK</span></td><td>Replace <code>users</code> with the business group in <code>permissions</code></td></tr>
+        <tr><td class="id">IAM-002</td><td><code>CAN_MANAGE</code> limited to the owning team or deploy service principal</td><td><span class="sev b">BLOCK</span></td><td>Move individuals into the owning group</td></tr>
+        <tr><td class="id">IAM-003</td><td>User-facing data reads use on-behalf-of user authorization with least-privilege scopes</td><td><span class="sev b">BLOCK</span></td><td>Enable user authorization and request only the scopes the app needs</td></tr>
+        <tr><td class="id">IAM-004</td><td>Prod deploys run as a service principal, not a person</td><td><span class="sev b">BLOCK</span></td><td>Set <code>run_as</code> / deploy identity in the prod target</td></tr>
+
+        <tr class="group"><td colspan="4">Unity Catalog and data</td></tr>
+        <tr><td class="id">UC-001</td><td>No <code>hive_metastore</code> references; three-level names only</td><td><span class="sev b">BLOCK</span></td><td>Point queries at <code>catalog.schema.table</code></td></tr>
+        <tr><td class="id">UC-002</td><td>SQL warehouse attached as a declared app resource, not a hard-coded ID</td><td><span class="sev b">BLOCK</span></td><td>Add a <code>sql_warehouse</code> resource and read its ID from env</td></tr>
+        <tr><td class="id">UC-003</td><td>Catalog / schema chosen per target, no prod data from dev</td><td><span class="sev b">BLOCK</span></td><td>Use bundle variables overridden per target</td></tr>
+
+        <tr class="group"><td colspan="4">Genie integration</td></tr>
+        <tr><td class="id">GEN-001</td><td>Genie space declared as an app resource; space ID never hard-coded</td><td><span class="sev b">BLOCK</span></td><td>Add a <code>genie_space</code> resource, read the ID with <code>valueFrom</code></td></tr>
+        <tr><td class="id">GEN-002</td><td>Genie calls run as the end user so UC row filters and masks apply</td><td><span class="sev b">BLOCK</span></td><td>Call the Conversation API with the user token, not the app principal</td></tr>
+        <tr><td class="id">GEN-003</td><td>Space exists in the target workspace and is shared with the app's user group</td><td><span class="sev b">BLOCK</span></td><td>Share the space, or deploy it in the same bundle</td></tr>
+        <tr><td class="id">GEN-004</td><td>Polling has a timeout and the UI handles failed or empty answers</td><td><span class="sev w">WARN</span></td><td>Use the framework's Genie client helper</td></tr>
+
+        <tr class="group"><td colspan="4">Agent Supervisor and Mosaic AI</td></tr>
+        <tr><td class="id">AGT-001</td><td>Supervisor / agent serving endpoint declared as an app resource with <code>CAN_QUERY</code> only</td><td><span class="sev b">BLOCK</span></td><td>Add a <code>serving_endpoint</code> resource with the least permission</td></tr>
+        <tr><td class="id">AGT-002</td><td>AI Gateway guardrails (PII, safety) enabled on the endpoint</td><td><span class="sev b">BLOCK</span></td><td>Turn on guardrails in the endpoint's AI Gateway config</td></tr>
+        <tr><td class="id">AGT-003</td><td>Inference tables or MLflow tracing enabled for audit</td><td><span class="sev b">BLOCK</span></td><td>Enable inference tables to a governed UC schema</td></tr>
+        <tr><td class="id">AGT-004</td><td>Rate limits set on the endpoint</td><td><span class="sev w">WARN</span></td><td>Configure per-user or per-endpoint limits</td></tr>
+        <tr><td class="id">AGT-005</td><td>User feedback captured and linked to the trace</td><td><span class="sev w">WARN</span></td><td>Log thumbs up/down through the feedback helper</td></tr>
+
+        <tr class="group"><td colspan="4">Operations and cost</td></tr>
+        <tr><td class="id">OPS-001</td><td>Required tags present: owner, cost center, data classification</td><td><span class="sev b">BLOCK</span></td><td>Add tags at bundle or app level</td></tr>
+        <tr><td class="id">OPS-002</td><td>Health endpoint and structured logging in place</td><td><span class="sev w">WARN</span></td><td>Use the framework's app template</td></tr>
+        <tr><td class="id">OPS-003</td><td>Compute size justified above the default</td><td><span class="sev w">WARN</span></td><td>Lower the size or add a waiver with a reason</td></tr>
+        <tr><td class="id">OPS-004</td><td>README with owner, purpose and support contact</td><td><span class="sev w">WARN</span></td><td>Generate from the template</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="legend"><span><span class="sev b">BLOCK</span> stops the prod deploy</span><span><span class="sev w">WARN</span> reported, does not stop the deploy</span><span>Severities can differ per target (dev / test / prod)</span></div>
+  </div>
+</section>
+
+<!-- 04 -->
+<section id="experience" class="alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">04 · Developer experience</span>
+      <h2>A blocked release explains itself</h2>
+      <p>When the gate stops a deploy, the developer sees the same report in the pipeline log and as a pull request comment. Each finding says where the problem is, why it matters and the exact change that fixes it.</p>
+    </div>
+
+<pre style="margin-top:24px"><span class="d">$ appgate check --target prod</span>
+<span class="c">Apps Release Gate</span>  bundle: sales-genie-app   target: prod   rules: 27
+
+<span class="r">✖ BLOCK  SEC-001</span>  Secret found in source
+         app/config.py:14   API_KEY = "dapi3f…"
+         <span class="y">Fix:</span> move the value to secret scope <span class="g">sales-app</span>, declare it as an
+              app secret resource, and read it in app.yaml:
+              env: [{ name: API_KEY, valueFrom: api-key }]
+
+<span class="r">✖ BLOCK  GEN-002</span>  Genie called with the app service principal
+         app/genie_client.py:41   WorkspaceClient()  # app identity
+         <span class="y">Fix:</span> pass the user token from the request header so UC row
+              filters apply to each user. See docs/genie-obo.md
+
+<span class="r">✖ BLOCK  AGT-002</span>  Endpoint <span class="g">sales-supervisor</span> has no AI Gateway guardrails
+         <span class="y">Fix:</span> enable input and output safety and PII guardrails on
+              the endpoint, then re-run the pipeline.
+
+<span class="y">▲ WARN   OPS-003</span>  compute_size LARGE without justification
+
+<span class="d">────────────────────────────────────────────────────────</span>
+3 blocking · 1 warning · 23 passed      <span class="r">Deployment blocked (exit 1)</span></pre>
+
+    <div class="codegrid" style="margin-top:28px">
+      <div>
+        <h3 style="margin:0">Rules are short and readable</h3>
+        <p>Platform owners maintain standards as code. A typical rule is a few lines of YAML; anything that needs logic gets a small Python check registered under the same ID.</p>
+<pre><span class="c">- id:</span> GEN-001
+  <span class="c">title:</span> Genie space must be a declared app resource
+  <span class="c">applies_to:</span> apps
+  <span class="c">severity:</span> { dev: warn, test: block, prod: block }
+  <span class="c">check:</span>
+    source_pattern: <span class="g">"space_id\\s*=\\s*['\"][0-9a-f]{32}"</span>
+    require_resource: genie_space
+  <span class="c">fix:</span> <span class="g">"Declare a genie_space resource and read its ID via valueFrom."</span></pre>
+      </div>
+      <div>
+        <h3 style="margin:0">Pipeline wiring</h3>
+        <p>One added step in the existing DAB pipeline. Deploy runs only if the gate exits 0; reports go out as SARIF, Markdown (PR comment) and a Delta table.</p>
+<pre><span class="d"># one added step in the existing DAB pipeline</span>
+- run: databricks bundle validate -t $TARGET -o json &gt; bundle.json
+- run: appgate check --bundle bundle.json --target $TARGET \
+         --report sarif,md,delta
+- run: databricks bundle deploy -t $TARGET
+  <span class="d"># runs only if appgate exits 0</span></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 -->
+<section id="poc">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="num">05 · POC plan</span>
+      <h2>Four weeks to a working gate</h2>
+    </div>
+    <div class="phases">
+      <div class="ph"><header><small>Week 1</small><b>Standards and setup</b></header><ul><li>Workshops with security, platform, AI owners</li><li>Confirm catalog and severities</li><li>Pick 3 pilot apps; set up dev and prod targets</li></ul></div>
+      <div class="ph"><header><small>Week 2</small><b>Gate engine</b></header><ul><li><code>appgate</code> CLI, rule loader, layers 1 and 2</li><li>Security, IAM and UC rules</li><li>Pipeline step for the customer's CI tool</li></ul></div>
+      <div class="ph"><header><small>Week 3</small><b>Genie and agents</b></header><ul><li>Layer 3 workspace verification</li><li>Genie and Agent Supervisor rules</li><li>Reference app templates and helpers</li></ul></div>
+      <div class="ph"><header><small>Week 4</small><b>Prove and hand over</b></header><ul><li>Run pilots with seeded violations</li><li>Waivers, PR reports, UC compliance dashboard</li><li>Demo, runbook, roll-out plan</li></ul></div>
+    </div>
+
+    <h3>Success criteria</h3>
+    <div class="kpis">
+      <div class="kpi hl"><div class="n">100%</div><div class="l">Blocking violations stopped before deploy in the prod target</div></div>
+      <div class="kpi"><div class="n">100%</div><div class="l">Findings that include a file location and a concrete fix</div></div>
+      <div class="kpi"><div class="n">&lt; 2 min</div><div class="l">Gate run time added to the pipeline</div></div>
+      <div class="kpi"><div class="n">3 of 3</div><div class="l">Pilot apps passing after fixes (CRUD, Genie, Agent Supervisor)</div></div>
+      <div class="kpi"><div class="n">&lt; 5%</div><div class="l">False-positive rate on pilot apps after tuning</div></div>
+    </div>
+
+    <div class="cards">
+      <div class="card"><span class="k">We deliver</span><h4>Deliverables</h4><ul><li><code>appgate</code> Python package and CLI</li><li>Policy catalog and waiver process</li><li>CI pipeline template</li><li>Three reference app templates</li><li>UC compliance table and dashboard</li><li>Runbook and roll-out recommendation</li></ul></div>
+      <div class="card"><span class="k">You provide</span><h4>Customer provides</h4><ul><li>Dev and prod workspaces with Unity Catalog</li><li>Deploy service principal and CI access</li><li>A Genie space and an Agent Supervisor endpoint for pilots</li><li>Named owners for security and AI governance</li></ul></div>
+      <div class="card"><span class="k">Not in this phase</span><h4>Out of scope for the POC</h4><ul><li>Remediating existing production apps</li><li>Runtime monitoring of live apps</li><li>Non-App resources (jobs, pipelines), planned for phase 2</li></ul></div>
+    </div>
+
+    <h3>After the POC</h3>
+    <p style="max-width:75ch;color:var(--ink-soft)">Phase 2 extends the same gate to jobs, Lakeflow pipelines and model serving bundles, adds runtime drift checks against deployed apps, and moves the gate into a shared platform template so every new bundle inherits it by default.</p>
+
+    <div class="cta">
+      <div>
+        <h3>Next step</h3>
+        <p>A 60-minute working session to confirm the standards catalog and pick the three pilot apps. The POC can start the following week.</p>
+      </div>
+      <ol>
+        <li><b>Confirm</b> the starter standards and severities</li>
+        <li><b>Select</b> the three pilot apps and workspaces</li>
+        <li><b>Kick off</b> week 1 the following Monday</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap"><svg viewBox="0 0 1585.24 309.27" class="logo" role="img" aria-label="Everforth Apex Systems"><path fill="#EEFF00" d="M267.02 213.95 374 213.95 341.86 262.13C333.39 274.84 319.09 282.46 303.84 282.46L215.2 282.46 257.5 219.03C259.64 215.84 263.18 213.95 267.02 213.95ZM326.01 116.29 283.71 179.72 433.29 179.72C448.54 179.72 462.84 172.1 471.31 159.39L503.45 111.21 335.54 111.21C331.7 111.21 328.17 113.1 326.02 116.29ZM297.01 8.42C281.76 8.42 267.46 16.04 258.99 28.75L135.52 213.95 70.15 213.95C54.9 213.95 40.6 221.57 32.13 234.28L0 282.46 167.91 282.46C171.75 282.46 175.28 280.57 177.43 277.38L307.67 82.01C309.81 78.82 313.35 76.93 317.19 76.93L527.8 76.93C543.05 76.93 557.35 69.31 565.82 56.6L597.96 8.42 297.01 8.42ZM767.02 122.37 695.07 122.37 695.07 86.69 759.2 86.69 759.2 64.87 695.07 64.87 695.07 31.49 765.97 31.49 765.97 8.42 666.47 8.42 666.47 145.44 767.02 145.44 767.02 122.37ZM874.49 42.45 845.64 42.45 829.55 90.23C825.66 101.34 823.37 111.66 821.73 122.17L818.44 122.17C816.8 111.86 814.55 101.94 810.82 90.83L794.73 42.4 765.68 42.4 803.2 145.44 836.78 145.44 874.5 42.4 874.5 42.45ZM1040.76 70.11C1045.09 70.11 1047.93 70.56 1051.87 71.36L1051.87 42.11C1051.07 42.11 1048.78 41.91 1046.74 41.91 1030.65 41.91 1019.93 46.24 1013.76 63.14L1010.67 62.29C1012.76 55.86 1013.56 51.98 1013.56 46.2L1013.56 42.46 985.96 42.46 985.96 145.45 1014.16 145.45 1014.16 94.13C1014.16 76.79 1026.77 70.01 1040.77 70.01L1040.77 70.11ZM1288.54 70.11C1292.87 70.11 1295.76 70.56 1299.65 71.36L1299.65 42.11C1298.85 42.11 1296.56 41.91 1294.52 41.91 1278.43 41.91 1267.71 46.24 1261.54 63.14L1258.45 62.29C1260.49 55.86 1261.34 51.98 1261.34 46.2L1261.34 42.46 1233.74 42.46 1233.74 145.45 1261.99 145.45 1261.99 94.13C1261.99 76.79 1274.6 70.01 1288.6 70.01L1288.55 70.11ZM1402.34 2.29 1374.09 2.29 1374.09 145.49 1402.34 145.49 1402.34 82.01C1402.34 69.25 1412.06 62.03 1423.57 62.03L1424.17 62.03C1435.28 62.03 1443.75 67.61 1443.75 80.17L1443.75 145.49 1471.75 145.49 1471.75 75.24C1471.75 49.08 1454.91 40.01 1437.57 40.01 1420.23 40.01 1407.28 48.23 1402.94 58.94L1399.65 57.89C1401.54 52.76 1402.34 49.87 1402.34 44.29L1402.34 2.24 1402.34 2.29ZM1091.08 32.54C1091.08 23.67 1096.61 20.58 1104.88 20.58 1108.97 20.58 1113.1 21.18 1117.64 22.42L1117.64 2.04C1114.3 1.44 1106.93 0 1097.21 0 1075.34 0 1062.78 10.26 1062.78 29.65L1062.78 145.45 1091.03 145.45 1091.03 62.63 1116.59 62.63 1116.59 42.45 1091.03 42.45 1091.03 32.53 1091.08 32.53ZM922.87 59.09C909.52 59.09 902.09 70 901.05 82.36L946.19 82.36C945.19 69.6 937.37 59.09 924.17 59.09L922.87 59.09ZM974.79 110.81C969.86 133.43 951.32 148.08 924.32 147.88 891.98 147.68 872.6 127.7 872.6 94.12 872.6 60.54 893.38 39.91 923.67 39.91 953.96 39.91 974.14 60.09 974.14 93.67L974.14 99.45 900.6 99.45 900.6 100.5C901.05 116 910.52 127.31 924.52 127.31L925.37 127.31C937.53 127.31 944.55 119.69 946.99 110.82L974.79 110.82ZM1360.29 144.99 1360.29 121.92C1359.04 122.12 1355.76 122.97 1351.02 122.97 1342.6 122.97 1339.51 118.44 1339.51 109.17L1339.51 62.58 1359.29 62.58 1359.29 42.4 1339.51 42.4 1339.51 12.56 1311.26 12.56 1311.26 108.97C1311.26 132.64 1320.53 147.09 1344.19 147.09 1351.81 147.09 1359.89 145.05 1360.28 145.05L1360.28 145ZM1193.83 93.72C1193.83 75.58 1186.85 60.74 1170.56 60.74L1169.12 60.74C1153.08 60.74 1145.85 75.99 1145.85 93.72 1145.85 111.45 1152.83 127.1 1169.12 127.1L1170.56 127.1C1186.85 127.1 1193.83 111.85 1193.83 93.72ZM1222.87 93.52C1222.87 127.3 1200.4 147.93 1169.91 147.93 1139.42 147.93 1116.95 127.3 1116.95 93.52 1116.95 59.74 1139.02 39.96 1169.91 39.96 1200.8 39.96 1222.87 59.74 1222.87 93.52ZM720.13 239.76 687.1 239.76 703.64 193.92 720.18 239.76 720.13 239.76ZM694.62 179.77 655.91 282.51 671.7 282.51 682.41 252.71 724.96 252.71 735.67 282.51 751.91 282.51 713.05 179.77 694.56 179.77 694.61 179.77ZM795.76 271.9C782.66 271.9 774.78 262.23 774.78 244.5 774.78 226.77 782.8 217.1 795.91 217.1 809.02 217.1 816.74 226.62 816.74 244.06 816.74 261.5 808.87 271.91 795.76 271.91ZM760.19 309.27 774.79 309.27 774.79 272.5C780.02 279.92 788.64 284.26 798.91 284.26 818.24 284.26 831.94 268.76 831.94 244.05 831.94 219.34 818.54 204.74 799.05 204.74 788.64 204.74 780.17 208.93 774.78 216.65L774.78 206.54 760.18 206.54 760.18 309.28ZM896.02 236.77 855.66 236.77C857.75 224.11 865.77 216.99 877.09 216.99 888.41 216.99 895.53 224.86 895.97 236.77L896.02 236.77ZM840.01 244.35C840.01 269.21 854.16 284.26 876.33 284.26 893.87 284.26 907.42 274.44 910.11 258.65L894.91 258.65C893.12 266.52 886.54 271.9 877.02 271.9 864.21 271.9 856.19 263.28 855.15 247.63L910.95 247.63 910.95 243.3C910.95 219.48 898.44 204.73 877.02 204.73 855.6 204.73 839.95 219.93 839.95 244.34L840 244.34ZM966.17 282.51 983.76 282.51 956.06 243.35 981.82 206.58 964.98 206.58 947.59 232.94 930.3 206.58 912.91 206.58 938.67 242.9 910.97 282.51 927.96 282.51 947.29 253.31 966.17 282.51ZM1013.56 248.63C1014.16 272 1029.35 284.21 1054.82 284.21 1077.74 284.21 1092.79 272.3 1092.79 252.67 1092.79 233.04 1078.79 227.56 1057.36 222.33 1041.42 218.44 1032.05 214.91 1032.05 205.94 1032.05 196.97 1040.22 190.74 1053.33 190.74 1066.44 190.74 1075.2 198.31 1075.95 210.52L1091.3 210.52C1090.7 189.99 1076.4 177.93 1053.78 177.93 1031.16 177.93 1016.71 190.14 1016.71 207.13 1016.71 226.06 1031.61 231.54 1053.33 236.78 1067.48 240.17 1077.3 243.46 1077.3 254.47 1077.3 264.63 1068.98 271.31 1054.98 271.31 1039.04 271.31 1029.67 263.29 1029.07 248.69L1013.57 248.69 1013.57 248.64ZM1101.5 296.86 1101.5 309.22 1112.36 309.22C1126.36 309.22 1133.09 303.59 1138.27 289.59L1169.66 206.53 1154.31 206.53 1133.18 266.22 1112.05 206.53 1096.55 206.53 1125.6 284.11 1124.55 286.8C1121.71 294.37 1118.42 296.91 1110.25 296.91L1101.48 296.91 1101.48 296.86ZM1171.25 257.75C1171.7 274.89 1183.46 284.26 1203.84 284.26 1222.72 284.26 1234.33 275.19 1234.33 259.85 1234.33 244.51 1220.78 240.67 1205.88 237.23 1194.27 234.54 1187.54 232.75 1187.54 226.07 1187.54 219.99 1193.67 216.25 1202.44 216.25 1212.46 216.25 1217.64 221.03 1218.23 229.8L1232.68 229.8C1231.98 214.15 1221.57 204.79 1202.93 204.79 1184.29 204.79 1172.84 213.71 1172.84 227.56 1172.84 242.76 1185.2 246.44 1201.89 250.33 1213.5 253.02 1219.58 255.26 1219.58 261.79 1219.58 268.32 1213.6 272.5 1204.08 272.5 1192.77 272.5 1186.04 266.67 1185.59 257.75L1171.14 257.75 1171.24 257.75ZM1252.27 264.43C1252.27 275.64 1258.1 282.47 1271.05 282.47L1282.81 282.47 1282.81 270.26 1276.58 270.26C1269.9 270.26 1266.91 267.72 1266.91 261.49L1266.91 218.34 1282.26 218.34 1282.26 206.58 1266.91 206.58 1266.91 185.3 1252.31 185.3 1252.31 206.58 1237.71 206.58 1237.71 218.34 1252.31 218.34 1252.31 264.48 1252.26 264.43ZM1344.05 236.77 1303.69 236.77C1305.78 224.11 1313.8 216.99 1325.12 216.99 1336.44 216.99 1343.56 224.86 1344 236.77L1344.05 236.77ZM1324.37 284.26C1341.91 284.26 1355.46 274.44 1358.15 258.65L1342.95 258.65C1341.16 266.52 1334.58 271.9 1325.06 271.9 1312.25 271.9 1304.23 263.28 1303.19 247.63L1359.04 247.63 1359.04 243.3C1359.04 219.48 1346.53 204.73 1325.11 204.73 1303.69 204.73 1288.04 219.93 1288.04 244.34 1288.04 268.75 1302.19 284.25 1324.36 284.25ZM1371.6 206.43 1371.6 282.36 1386.2 282.36 1386.2 237.27C1386.2 225.36 1393.03 217.49 1403.89 217.49 1413.41 217.49 1418.49 223.77 1418.49 234.63L1418.49 282.41 1433.09 282.41 1433.09 237.32C1433.09 225.41 1439.97 217.54 1450.68 217.54 1460.2 217.54 1465.28 223.82 1465.28 234.68L1465.28 282.46 1479.88 282.46 1479.88 231.99C1479.88 215.15 1470.36 204.74 1454.72 204.74 1444.9 204.74 1435.39 208.93 1430.01 217.4 1426.17 209.38 1418.7 204.74 1408.58 204.74 1399.81 204.74 1390.74 208.63 1385.96 217.1L1385.96 206.54 1371.66 206.54 1371.61 206.44ZM1491.34 257.75C1491.79 274.89 1503.55 284.26 1523.93 284.26 1542.81 284.26 1554.42 275.19 1554.42 259.85 1554.42 244.51 1540.87 240.67 1525.97 237.23 1514.36 234.54 1507.63 232.75 1507.63 226.07 1507.63 219.99 1513.76 216.25 1522.53 216.25 1532.55 216.25 1537.73 221.03 1538.32 229.8L1552.77 229.8C1552.07 214.15 1541.66 204.79 1523.02 204.79 1504.38 204.79 1492.93 213.71 1492.93 227.56 1492.93 242.76 1505.29 246.44 1521.98 250.33 1533.59 253.02 1539.67 255.26 1539.67 261.79 1539.67 268.32 1533.69 272.5 1524.17 272.5 1512.86 272.5 1506.13 266.67 1505.68 257.75L1491.23 257.75 1491.33 257.75Z"></path></svg><span>Apps Release Gate · Proposal · October 2026</span></div>
+</footer>
+
+</body>
+</html>
