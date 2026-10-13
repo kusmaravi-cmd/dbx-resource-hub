@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DataPulse</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2.5-7 4 14 2.5-7H21"/></svg></div>
+      <div><div class="brand-name">DataPulse</div><div class="brand-sub">Data &amp; AI readiness · enforced</div></div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="side-foot" id="sideFoot"></div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <button class="iconbtn menu" onclick="DP.toggleNav()" aria-label="Menu">☰</button>
+      <div class="crumb"><span id="crumbA">DataPulse</span> <b id="crumbB"></b></div>
+      <span class="spacer"></span>
+      <span id="saveState" class="savestate"></span>
+      <span class="badge" id="who"></span>
+    </header>
+    <div id="banner"></div>
+    <div class="content" id="content"><div class="loading">Loading framework…</div></div>
+  </main>
+</div>
+<div id="drawer" class="drawer" aria-hidden="true"><div class="drawer-inner" id="drawerBody"></div></div>
+<div id="scrim" class="scrim" onclick="DP.closeDrawer()"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

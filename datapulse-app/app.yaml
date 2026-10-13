@@ -1,0 +1,10 @@
+# Databricks App runtime config. The SQL warehouse comes from the app resource
+# named "sql-warehouse" (declared in databricks.yml or added in the Apps UI).
+command: ["python", "app.py"]
+env:
+  - name: DATAPULSE_WAREHOUSE_ID
+    valueFrom: sql-warehouse
+  - name: DATAPULSE_CATALOG
+    value: "main"          # Unity Catalog catalog for DataPulse tables
+  - name: DATAPULSE_SCHEMA
+    value: "datapulse"     # schema is created on first start if the app may CREATE SCHEMA

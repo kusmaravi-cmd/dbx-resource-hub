@@ -1,0 +1,41 @@
+# Databricks Asset Bundle: deploys DataPulse as a Databricks App.
+#   databricks bundle deploy -t aws --var warehouse_id=<id>
+#   databricks bundle run datapulse -t aws
+bundle:
+  name: datapulse
+
+variables:
+  warehouse_id:
+    description: SQL warehouse (serverless recommended) the app uses to read and write Unity Catalog tables.
+
+sync:
+  exclude:
+    - tests/**
+    - .data/**
+    - requirements-dev.txt
+
+resources:
+  apps:
+    datapulse:
+      name: datapulse
+      description: "DataPulse: platform-agnostic data & AI readiness assessment with enforced levers."
+      source_code_path: .
+      resources:
+        - name: sql-warehouse
+          description: Warehouse for DataPulse Unity Catalog tables
+          sql_warehouse:
+            id: ${var.warehouse_id}
+            permission: CAN_USE
+
+targets:
+  aws:
+    default: true
+    mode: development
+    workspace:
+      # Your Databricks on AWS workspace URL
+      host: https://<your-workspace>.cloud.databricks.com
+  prod:
+    mode: production
+    workspace:
+      host: https://<your-workspace>.cloud.databricks.com
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/${bundle.target}
