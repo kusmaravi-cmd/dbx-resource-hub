@@ -98,6 +98,7 @@ const DP = (() => {
     $('crumbB').textContent = names[S.view] || '';
   }
   function render() {
+    if (tipEl) tipEl.style.display = 'none';
     nav();
     const v = VIEWS[S.view] || VIEWS.home;
     $('content').innerHTML = v();
