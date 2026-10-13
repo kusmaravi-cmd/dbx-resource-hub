@@ -27,7 +27,7 @@ if problems:  # fail fast: an inconsistent framework would silently mis-score
     raise RuntimeError("framework integrity: " + "; ".join(problems))
 
 STATIC = Path(__file__).resolve().parent.parent / "static"
-app = FastAPI(title="DataPulse", version=model.FRAMEWORK_VERSION)
+app = FastAPI(title="Everforth DataPulse", version=model.FRAMEWORK_VERSION)
 store = make_store()
 
 
