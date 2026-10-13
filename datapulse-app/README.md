@@ -78,6 +78,16 @@ The Unity Catalog tables are created on first start in `main.datapulse`, which y
 
 ## Deploy to Databricks on AWS
 
+**Quickest:** one command with the Python SDK. It uploads the app, attaches the warehouse, grants the app's service principal access to the schema and starts the app:
+
+```bash
+pip install databricks-sdk
+databricks auth login --host https://<workspace>.cloud.databricks.com    # or export DATABRICKS_HOST / DATABRICKS_TOKEN
+python scripts/deploy.py --warehouse-id <warehouse-id> --catalog main --schema datapulse
+```
+
+**Or with Asset Bundles:**
+
 Prerequisites: Databricks Apps enabled in the workspace, Databricks CLI ≥ 0.250 authenticated to the workspace (`databricks auth login --host https://<workspace>.cloud.databricks.com`), and a SQL warehouse (serverless recommended).
 
 1. Set `workspace.host` in `databricks.yml`.
