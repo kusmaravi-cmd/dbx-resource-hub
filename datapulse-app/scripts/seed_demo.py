@@ -80,12 +80,8 @@ METRICS = {"M-DISC-1": 12, "M-DISC-2": 34, "M-TRU-1": 36, "M-TRU-2": 96, "M-GOV-
            "M-INT-1": 28, "M-PERF-1": 81, "M-OPS-1": 58, "M-VAL-1": 9}
 
 
-def main():
-    created = call("POST", "/api/assessments", {"name": "Phase 0 discovery", "org": "Northwind Health (demo)",
-                                                "mode": "attested", "platform": "databricks"})
-    aid = created["id"]
-    a = call("GET", f"/api/assessments/{aid}")
-    doc = a[DOC]
+def fill_demo(doc):
+    """Populate an assessment document with the demo answers (shared with the browser-edition build)."""
     doc["meta"].update(date="2026-10-13", assessor="DataPulse demo", attendees="CDO, Head of Data Eng, CISO delegate, Actuarial lead",
                        scope="Claims, Member, Provider domains; 42 CDEs")
     doc["use_cases"] = [
@@ -98,6 +94,15 @@ def main():
         doc["responses"][qid] = {"level": lvl, "evidence": ev, "confidence": conf, "note": ans[3] if len(ans) > 3 else ""}
     for qid, v in METRICS.items():
         doc["responses"][qid] = {"value": v}
+    return doc
+
+
+def main():
+    created = call("POST", "/api/assessments", {"name": "Phase 0 discovery", "org": "Northwind Health (demo)",
+                                                "mode": "attested", "platform": "databricks"})
+    aid = created["id"]
+    a = call("GET", f"/api/assessments/{aid}")
+    doc = fill_demo(a[DOC])
     r = call("PUT", f"/api/assessments/{aid}", {"version": a["version"], "doc": doc})
     v = r["version"]
     # Commit and enforce a first lever, showing the lifecycle gates.

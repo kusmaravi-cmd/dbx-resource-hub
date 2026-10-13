@@ -13,6 +13,11 @@ const DP = (() => {
   const doc = () => S.cur && S.cur.doc;
   const res = () => S.cur && S.cur.results;
   const TIERS = ['T1', 'T2', 'T3'];
+  // Hash routing normally; an in-memory router where the page cannot own the URL (the claude.ai edition).
+  const MEM = !!window.DP_MEMORY_ROUTER;
+  let memHash = '#/home';
+  const getHash = () => (MEM ? memHash : location.hash);
+  function setHash(h) { if (MEM) { memHash = h; route(); } else location.hash = h; }
 
   // ------------------------------------------------------------------ api
   async function api(method, url, body) {
@@ -34,26 +39,26 @@ const DP = (() => {
     } catch (e) { $('content').innerHTML = `<div class="empty">Could not load DataPulse: ${esc(e.message)}</div>`; return; }
     $('who').textContent = S.me;
     $('sideFoot').innerHTML = `<b>Framework v${esc(S.fw.version)}</b><br>${S.fw.questions.length} questions · ${S.fw.levers.length} levers · ${S.fw.rules.length} enforcement rules<br>Store: ${esc(S.store.kind)} <span class="mono">${esc(S.store.location || '')}</span>`;
-    window.addEventListener('hashchange', route);
+    if (!MEM) window.addEventListener('hashchange', route);
     document.addEventListener('mouseover', tipOn); document.addEventListener('mouseout', tipOff); document.addEventListener('mousemove', tipMove);
     window.addEventListener('beforeunload', (e) => { if (S.timer || S.saving) { e.preventDefault(); e.returnValue = ''; } });
     await route();
   }
 
   async function route() {
-    const h = (location.hash || '#/home').slice(2).split('/');
+    const h = (getHash() || '#/home').slice(2).split('/');
     const view = h[0] || 'home', id = h[1];
     if (S.drawer) closeDrawer();
     if (id && (!S.cur || S.cur.id !== id)) {
       await flush();
       try { const a = await api('GET', `/api/assessments/${id}`); S.cur = { id, version: a.version, doc: a.doc, results: a.results, meta: a.meta }; }
-      catch (e) { S.cur = null; banner(`Could not open assessment: ${esc(e.message)}`); location.hash = '#/home'; return; }
+      catch (e) { S.cur = null; banner(`Could not open assessment: ${esc(e.message)}`); setHash('#/home'); return; }
     }
-    if (!id && !['home', 'framework', 'catalog'].includes(view)) { location.hash = '#/home'; return; }
+    if (!id && !['home', 'framework', 'catalog'].includes(view)) { setHash('#/home'); return; }
     if (view === 'home') { try { S.list = await api('GET', '/api/assessments'); } catch (e) { banner(esc(e.message)); } }
     S.view = view; render();
   }
-  function go(view) { location.hash = `#/${view}` + (S.cur && view !== 'home' ? `/${S.cur.id}` : ''); $('sidebar').classList.remove('open'); }
+  function go(view) { setHash(`#/${view}` + (S.cur && view !== 'home' ? `/${S.cur.id}` : '')); $('sidebar').classList.remove('open'); }
 
   // ------------------------------------------------------------------ save
   function dirty() { setSave('Unsaved changes…'); clearTimeout(S.timer); S.timer = setTimeout(() => { S.timer = null; save(); }, 700); }
@@ -114,7 +119,7 @@ const DP = (() => {
   // ------------------------------------------------------------------ home
   const VIEWS = {};
   VIEWS.home = () => {
-    const rows = S.list.length ? `<div class="alist">${S.list.map((a) => `<div class="item"><div><b>${esc(a.name)}</b> <span class="muted">${esc(a.org)}</span><div class="tiny muted">${esc(a.mode)} · v${a.version} · updated ${esc((a.updated_at || '').slice(0, 16).replace('T', ' '))} by ${esc(a.updated_by)}</div></div><button class="btn sm" onclick="location.hash='#/results/${a.id}'">Open</button></div>`).join('')}</div>`
+    const rows = S.list.length ? `<div class="alist">${S.list.map((a) => `<div class="item"><div><b>${esc(a.name)}</b> <span class="muted">${esc(a.org)}</span><div class="tiny muted">${esc(a.mode)} · v${a.version} · updated ${esc((a.updated_at || '').slice(0, 16).replace('T', ' '))} by ${esc(a.updated_by)}</div></div><button class="btn sm" onclick="DP.open('${a.id}')">Open</button></div>`).join('')}</div>`
       : `<div class="empty">No assessments yet. Create the first one.</div>`;
     return `<div class="eyebrow">Platform-agnostic data &amp; AI readiness</div>
       <h1 class="title">Assessments</h1>
@@ -144,7 +149,7 @@ const DP = (() => {
     if (!name) { $('nName').focus(); return; }
     try {
       const r = await api('POST', '/api/assessments', { name, org: $('nOrg').value.trim(), mode: $('nMode').value, platform: $('nPlat').value });
-      location.hash = `#/setup/${r.id}`;
+      setHash(`#/setup/${r.id}`);
     } catch (e) { banner(esc(e.message)); }
   }
 
@@ -197,14 +202,15 @@ const DP = (() => {
       </tbody></table></div>
       <div class="row" style="margin-top:10px"><button class="btn" onclick="DP.ucAdd()">Add use case</button></div>
       <div class="grid g3" style="margin-top:16px">${jobs.map(([k, j]) => `<div class="card"><h3>${k}</h3><div class="small muted">${esc(j.desc)}</div><div class="small" style="margin-top:6px">Critical path: <b class="mono">${j.path.join(' · ')}</b></div>${(S.fw.job_lever_gates[k] || []).length ? `<div class="small" style="margin-top:4px">Lever gate: <b class="mono">${S.fw.job_lever_gates[k].join(', ')}</b> Enforced</div>` : ''}</div>`).join('')}</div>
-      <h2 class="sub">Danger zone</h2><button class="btn danger" onclick="DP.del()">Delete this assessment</button>`;
+      <h2 class="sub">Danger zone</h2><button class="btn danger" id="delBtn" onclick="DP.del()">Delete this assessment</button>`;
   };
   function ucSet(i, k, v, rerender) { doc().use_cases[i][k] = v; dirty(); if (rerender) nav(); }
   function ucAdd() { doc().use_cases = doc().use_cases || []; doc().use_cases.push({ id: 'uc' + Date.now(), name: '', domain: '', job: '', outcome: '', owner: '' }); dirty(); render(); }
   function ucDel(i) { doc().use_cases.splice(i, 1); dirty(); render(); }
   async function del() {
-    if (!confirm('Delete this assessment? It is soft-deleted and stays in the audit log.')) return;
-    await flush(); await api('DELETE', `/api/assessments/${S.cur.id}`); S.cur = null; location.hash = '#/home';
+    const b = $('delBtn');
+    if (b && !b.dataset.armed) { b.dataset.armed = '1'; b.textContent = 'Click again to delete (kept in the audit log)'; setTimeout(() => { if (b) { delete b.dataset.armed; b.textContent = 'Delete this assessment'; } }, 5000); return; }
+    await flush(); await api('DELETE', `/api/assessments/${S.cur.id}`); S.cur = null; setHash('#/home');
   }
 
   // ------------------------------------------------------------------ interview
@@ -447,7 +453,9 @@ const DP = (() => {
     }, 0);
     return `<div class="eyebrow">Share &amp; trace</div><h1 class="title">Report &amp; audit</h1>
       <p class="lede">Exports always reflect the latest saved version. In Databricks, the same results are written to Unity Catalog tables for portfolio dashboards.</p>
-      <div class="row"><a class="btn primary" href="/api/assessments/${id}/report.md">Executive summary (.md)</a><a class="btn" href="/api/assessments/${id}/export.csv">Scores &amp; findings (.csv)</a><a class="btn" href="/api/assessments/${id}/export.json">Full payload (.json)</a></div>
+      ${window.DP_ARTIFACT
+        ? `<div class="row"><button class="btn primary" onclick="DP.copyExport('report.md')">Copy executive summary (Markdown)</button><button class="btn" onclick="DP.copyExport('export.csv')">Copy scores &amp; findings (CSV)</button><button class="btn" onclick="DP.copyExport('export.json')">Copy full payload (JSON)</button><span class="small muted" id="copyMsg"></span></div>`
+        : `<div class="row"><a class="btn primary" href="/api/assessments/${id}/report.md">Executive summary (.md)</a><a class="btn" href="/api/assessments/${id}/export.csv">Scores &amp; findings (.csv)</a><a class="btn" href="/api/assessments/${id}/export.json">Full payload (.json)</a></div>`}
       <h2 class="sub">Executive summary preview</h2><pre class="card white small" id="mdPrev" style="white-space:pre-wrap;max-height:520px;overflow:auto;font-family:var(--mono);font-size:12px">Loading…</pre>
       <h2 class="sub">Audit log</h2><div class="tbl"><table><thead><tr><th style="width:150px">When (UTC)</th><th>Who</th><th>Action</th><th>Detail</th></tr></thead><tbody id="auditT"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody></table></div>`;
   };
@@ -492,7 +500,14 @@ const DP = (() => {
   function tipMove(e) { if (tipEl && tipEl.style.display === 'block') { const x = Math.min(e.clientX + 14, window.innerWidth - 350); tipEl.style.left = x + 'px'; tipEl.style.top = (e.clientY + 14) + 'px'; } }
 
   function toggleNav() { $('sidebar').classList.toggle('open'); }
+  function open(id) { setHash(`#/results/${id}`); }
+  async function copyExport(kind) {
+    const msg = $('copyMsg');
+    const text = await (await fetch(`/api/assessments/${S.cur.id}/${kind}`)).text();
+    try { await navigator.clipboard.writeText(text); if (msg) msg.textContent = 'Copied to clipboard.'; }
+    catch (e) { const pre = $('mdPrev'); if (pre) { pre.textContent = text; const r = document.createRange(); r.selectNodeContents(pre); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } if (msg) msg.textContent = 'Clipboard unavailable: the text is selected below, press Ctrl/Cmd+C.'; }
+  }
 
   document.addEventListener('DOMContentLoaded', init);
-  return { go, create, setField, ucSet, ucAdd, ucDel, del, setDim, setRole, setOpen, stepDim, setLevel, resp, metric, evAdd, evSet, evDel, sev, openLever, closeDrawer, lset, lexc, transition, qsearch, cat, toggleNav };
+  return { go, open, copyExport, create, setField, ucSet, ucAdd, ucDel, del, setDim, setRole, setOpen, stepDim, setLevel, resp, metric, evAdd, evSet, evDel, sev, openLever, closeDrawer, lset, lexc, transition, qsearch, cat, toggleNav };
 })();

@@ -106,6 +106,14 @@ pytest -q                            # engine, API and Delta store tests
 
 To use Unity Catalog from your laptop, set `DATAPULSE_WAREHOUSE_ID` and authenticate the Databricks SDK (for example, `DATABRICKS_CONFIG_PROFILE`).
 
+## Browser edition (no server)
+
+`artifact/` holds a single-page edition for demos: the same UI, framework and enforcement rules, with the engine ported to JavaScript (`artifact/engine.js`) and an in-page API (`artifact/api-shim.js`) that keeps data in the viewer's browser. `tests/test_js_engine_parity.py` checks that both engines agree on random assessments.
+
+```bash
+python scripts/build_artifact.py     # -> artifact/dist/DataPulse.html (open in any browser)
+```
+
 ## API
 
 `GET /api/framework` · `GET|POST /api/assessments` · `GET|PUT|DELETE /api/assessments/{id}` · `POST /api/assessments/{id}/levers/{lever}/transition` · `GET /api/assessments/{id}/audit` · `GET /api/assessments/{id}/report.md|export.csv|export.json` · `POST /api/evaluate` (stateless scoring for notebooks).

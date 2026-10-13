@@ -349,6 +349,7 @@ def prioritise_levers(assessment, dims, tiers, use_cases):
         eff = nxt
     for k, p in pr.items():
         p["priority"] = round(eff[k], 2)
+        p["rank_score"] = eff[k]  # unrounded, used for ordering so ties break identically everywhere
         if eff[k] - p["own_priority"] > 0.05:
             p["reasons"].append("prerequisite that unblocks other high-value levers")
             p["applicable"] = True
@@ -387,7 +388,7 @@ def plan_waves(assessment, dims, tiers, pr, findings):
         cands = [lid for lid in pending if lid not in planned and lid not in chosen
                  and not (lever_state(assessment, lid)["status"] == "Committed" and lever_state(assessment, lid).get("wave") not in (None, "", wid, str(wid)))]
         cands = [lid for lid in cands if not any(eligible(lid, avail, proj))]
-        cands.sort(key=lambda lid: -pr[lid]["priority"])
+        cands.sort(key=lambda lid: -pr[lid]["rank_score"])
         for lid in cands:
             if len(chosen) >= cap:
                 break
