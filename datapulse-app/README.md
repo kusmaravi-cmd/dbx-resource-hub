@@ -103,6 +103,19 @@ Prerequisites: Databricks Apps enabled in the workspace, Databricks CLI ≥ 0.25
 
 Without bundles, you can create the app in the UI (Compute → Apps → Create → Custom), add a SQL warehouse resource with the key `sql-warehouse`, and `databricks apps deploy datapulse --source-code-path /Workspace/Users/<you>/datapulse-app`.
 
+## Demo assessments
+
+`scripts/seed_demo.py` creates fictional companies through the API, so every step is validated and audited like a real one:
+
+- **Harbourline Logistics (demo)** (default): validated mode, 50/50 questions and 15/15 metrics, four use cases. Shows verified and enforced levers, a readiness ceiling bound by R2, and a customs agent blocked by the agent lever gates, including a rejected L-20 transition in the audit log.
+- **Northwind Health (demo)**: attested Phase 0 discovery with weaker governance.
+
+Against the deployed app, using your Databricks CLI OAuth login:
+
+```bash
+python scripts/seed_demo.py https://<app-url> --profile <profile> --company all
+```
+
 ## Run locally
 
 ```bash
@@ -110,7 +123,7 @@ cd datapulse-app
 python -m venv .venv && . .venv/bin/activate
 pip install -r requirements-dev.txt
 python app.py                        # http://localhost:8000, data in ./.data
-python scripts/seed_demo.py          # optional demo assessment
+python scripts/seed_demo.py --company all   # optional demo assessments
 pytest -q                            # engine, API and Delta store tests
 ```
 
